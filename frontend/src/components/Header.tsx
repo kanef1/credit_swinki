@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, UserCog, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Building2, UserCog, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'client' | 'underwriter' | 'demo';
@@ -71,12 +71,6 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, reviewC
               <span>Демо-сценарии жюри</span>
             </button>
           </nav>
-
-          {/* Статус онлайн */}
-          <div className="hidden md:flex items-center space-x-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="font-medium">Конвейер активен</span>
-          </div>
         </div>
       </div>
     </header>
