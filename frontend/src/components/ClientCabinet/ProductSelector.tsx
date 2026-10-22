@@ -66,8 +66,56 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
 
   const estimatedPayment = calculateEstimate();
 
-  const amountPresets = [1_000_000, 3_000_000, 5_000_000, 10_000_000];
-  const termPresets = [6, 12, 24, 36];
+  // Динамические кнопки срока в зависимости от выбранного продукта
+  const getDynamicTermPresets = (minTerm: number, maxTerm: number): number[] => {
+    let list: number[] = [];
+    if (maxTerm <= 12) {
+      list = [3, 6, 9, 12];
+    } else if (maxTerm <= 24) {
+      list = [6, 12, 18, 24];
+    } else if (maxTerm <= 36) {
+      list = [6, 12, 24, 36];
+    } else {
+      list = [12, 24, 36, 48, 60];
+    }
+    const filtered = list.filter((t) => t >= minTerm && t <= maxTerm);
+    if (!filtered.includes(minTerm)) filtered.unshift(minTerm);
+    if (!filtered.includes(maxTerm)) filtered.push(maxTerm);
+    return Array.from(new Set(filtered)).sort((a, b) => a - b);
+  };
+
+  // Динамические кнопки сумм в зависимости от лимитов продукта
+  const getDynamicAmountPresets = (minVal: number, maxVal: number): number[] => {
+    const candidates = [
+      300_000, 500_000, 1_000_000, 2_000_000, 3_000_000, 5_000_000, 10_000_000, 15_000_000, 25_000_000, 50_000_000
+    ];
+    let filtered = candidates.filter((a) => a >= minVal && a <= maxVal);
+    if (filtered.length > 5) {
+      const step = Math.floor(filtered.length / 4);
+      filtered = [filtered[0], filtered[step], filtered[step * 2], filtered[step * 3], filtered[filtered.length - 1]];
+    }
+    if (!filtered.includes(minVal)) filtered.unshift(minVal);
+    if (!filtered.includes(maxVal) && filtered.length < 6) filtered.push(maxVal);
+    return Array.from(new Set(filtered)).sort((a, b) => a - b);
+  };
+
+  const termPresets = getDynamicTermPresets(
+    currentProduct?.min_term_months || 3,
+    currentProduct?.max_term_months || 60
+  );
+
+  const amountPresets = getDynamicAmountPresets(
+    currentProduct?.min_amount || 100_000,
+    currentProduct?.max_amount || 50_000_000
+  );
+
+  const formatAmountPreset = (val: number) => {
+    if (val >= 1_000_000) {
+      const millions = val / 1_000_000;
+      return millions % 1 === 0 ? `${millions} млн ₽` : `${millions.toFixed(1)} млн ₽`;
+    }
+    return `${Math.round(val / 1000)} тыс. ₽`;
+  };
 
   const goals = [
     { id: 'Пополнение оборотных средств', label: 'Пополнение оборотных средств' },
@@ -179,7 +227,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}
               >
-                {(preset / 1_000_000).toFixed(0)} млн ₽
+                {formatAmountPreset(preset)}
               </button>
             ))}
           </div>
