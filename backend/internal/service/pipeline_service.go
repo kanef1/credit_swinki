@@ -206,6 +206,12 @@ func (s *PipelineService) UnderwriterApprove(appID uuid.UUID, dto UnderwriterApp
 		return nil, err
 	}
 
+	if app.Status == domain.StatusDisbursed {
+		return nil, fmt.Errorf("невозможно изменить условия уже выданного кредита (статус '%s')", app.Status)
+	}
+	if app.Status == domain.StatusSigned {
+		return nil, fmt.Errorf("невозможно изменить условия: договор уже подписан заемщиком (статус '%s')", app.Status)
+	}
 	if app.Status != domain.StatusManualReview && app.Status != domain.StatusOfferReady {
 		return nil, fmt.Errorf("ручное согласование доступно только для статусов '%s' и '%s' (текущий: '%s')", domain.StatusManualReview, domain.StatusOfferReady, app.Status)
 	}
@@ -233,6 +239,12 @@ func (s *PipelineService) UnderwriterReject(appID uuid.UUID, reason string) (*do
 		return nil, err
 	}
 
+	if app.Status == domain.StatusDisbursed {
+		return nil, fmt.Errorf("невозможно отклонить или отменить уже выданный кредит (статус '%s')", app.Status)
+	}
+	if app.Status == domain.StatusSigned {
+		return nil, fmt.Errorf("невозможно отклонить заявку: договор уже подписан заемщиком (статус '%s')", app.Status)
+	}
 	if app.Status != domain.StatusManualReview && app.Status != domain.StatusOfferReady {
 		return nil, fmt.Errorf("ручное отклонение доступно только для статусов '%s' и '%s' (текущий: '%s')", domain.StatusManualReview, domain.StatusOfferReady, app.Status)
 	}

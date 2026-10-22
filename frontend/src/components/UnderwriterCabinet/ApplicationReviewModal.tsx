@@ -26,7 +26,8 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
 }) => {
   const company = application.company;
   const scoring = application.scoring_result;
-  const isClosed = application.status === 'DISBURSED' || application.status === 'SIGNED' || application.status === 'REJECTED';
+  const statusUpper = (application.status || '').toUpperCase();
+  const isClosed = statusUpper === 'DISBURSED' || statusUpper === 'SIGNED' || statusUpper === 'REJECTED';
 
   const [approvedAmount, setApprovedAmount] = useState<number>(
     application.approved_amount || application.requested_amount
@@ -197,24 +198,48 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
         {/* Форма принятия ручного решения */}
         {isClosed ? (
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
-            <div className="text-xs font-bold">
-              {application.status === 'DISBURSED' && (
-                <span className="text-teal-700">✅ Денежные средства уже зачислены заемщику. Изменение условий завершенной сделки заблокировано.</span>
+            <div className="text-xs font-bold space-y-1">
+              {statusUpper === 'DISBURSED' && (
+                <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-teal-800 flex items-start space-x-2">
+                  <span className="text-base leading-none">✅</span>
+                  <div>
+                    <span className="font-extrabold uppercase tracking-wide block">Кредит выдан (DISBURSED)</span>
+                    <span className="text-teal-700 font-normal">
+                      Денежные средства успешно зачислены заемщику на расчетный счет. Кредитная сделка закрыта: кнопки отмены, отзыва и изменения параметров деактивированы.
+                    </span>
+                  </div>
+                </div>
               )}
-              {application.status === 'SIGNED' && (
-                <span className="text-emerald-700">✅ Кредитный договор уже подписан заемщиком. Сделка находится на этапе выдачи.</span>
+              {statusUpper === 'SIGNED' && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 flex items-start space-x-2">
+                  <span className="text-base leading-none">✅</span>
+                  <div>
+                    <span className="font-extrabold uppercase tracking-wide block">Договор подписан (SIGNED)</span>
+                    <span className="text-emerald-700 font-normal">
+                      Заемщик акцептовал условия через ПЭП. Сделка находится на этапе финальной проводки в АБС.
+                    </span>
+                  </div>
+                </div>
               )}
-              {application.status === 'REJECTED' && (
-                <span className="text-rose-700">❌ Заявка уже отклонена. Причина: {application.rejection_reason || 'Отказ по кредитной политике'}</span>
+              {statusUpper === 'REJECTED' && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-start space-x-2">
+                  <span className="text-base leading-none">❌</span>
+                  <div>
+                    <span className="font-extrabold uppercase tracking-wide block">Заявка отклонена (REJECTED)</span>
+                    <span className="text-rose-700 font-normal">
+                      Причина отказа: {application.rejection_reason || 'Отказ по кредитной политике банка'}
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
             <div className="flex justify-end pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all"
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
               >
-                Закрыть
+                Закрыть окно
               </button>
             </div>
           </div>
@@ -284,7 +309,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                   onClick={onClose}
                   className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all"
                 >
-                  Отмена
+                  Закрыть без изменений
                 </button>
                 <button
                   type="button"
