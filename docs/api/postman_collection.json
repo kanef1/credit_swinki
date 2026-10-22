@@ -1,0 +1,231 @@
+{
+  "info": {
+    "name": "Альфа Хак — Умный кредитный кабинет (API)",
+    "_postman_id": "c1f7b8d0-2026-4444-9999-alfa00000001",
+    "description": "Коллекция запросов сквозного цифрового кредитного конвейера для малого бизнеса (Альфа-Банк).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "appId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Системные и справочники",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            }
+          }
+        },
+        {
+          "name": "Список кредитных продуктов",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          }
+        },
+        {
+          "name": "Засеять тестовые синтетические данные",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demo/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demo", "seed"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Обогащение и Поиск компаний",
+      "item": [
+        {
+          "name": "Поиск и обогащение по ИНН (ООО Вектор Роста)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/lookup?inn=7701234567",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "lookup"],
+              "query": [{ "key": "inn", "value": "7701234567" }]
+            }
+          }
+        },
+        {
+          "name": "Поиск и обогащение по ИНН (ИП Смирнов)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/lookup?inn=7809876543",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "lookup"],
+              "query": [{ "key": "inn", "value": "7809876543" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Клиентский кредитный конвейер",
+      "item": [
+        {
+          "name": "Создать заявку (Черновик)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.collectionVariables.set('appId', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inn\": \"7701234567\",\n  \"product_id\": \"working-capital\",\n  \"requested_amount\": 5000000,\n  \"requested_term_months\": 24,\n  \"financing_goal\": \"Пополнение оборотных средств\",\n  \"repayment_type\": \"ANNUITY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications"]
+            }
+          }
+        },
+        {
+          "name": "Запустить конвейер (Обогащение + Скоринг)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{appId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications", "{{appId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Получить статус и скоринг-паспорт заявки",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications", "{{appId}}"]
+            }
+          }
+        },
+        {
+          "name": "Подписать договор ПЭП СМС (Выдача средств)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sms_code\": \"0000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications/{{appId}}/sign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications", "{{appId}}", "sign"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Кабинет андеррайтера (Банк)",
+      "item": [
+        {
+          "name": "Метрики и статистика конвейера",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/underwriter/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "underwriter", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Список заявок (Фильтр: MANUAL_REVIEW)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/applications?status=MANUAL_REVIEW",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "applications"],
+              "query": [{ "key": "status", "value": "MANUAL_REVIEW" }]
+            }
+          }
+        },
+        {
+          "name": "Ручное одобрение андеррайтером",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved_amount\": 3500000,\n  \"approved_term_months\": 36,\n  \"approved_rate\": 15.0,\n  \"notes\": \"Сверка отчетности пройдена, лимит скорректирован\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/underwriter/applications/{{appId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "underwriter", "applications", "{{appId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Ручной отказ андеррайтером",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Высокая задолженность по судебным искам контрагентов\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/underwriter/applications/{{appId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "underwriter", "applications", "{{appId}}", "reject"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

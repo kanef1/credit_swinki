@@ -1,0 +1,604 @@
+basePath: /
+definitions:
+  domain.Application:
+    properties:
+      application_number:
+        type: string
+      approved_amount:
+        description: Поля решения
+        type: number
+      approved_rate:
+        type: number
+      approved_term_months:
+        type: integer
+      audit_logs:
+        items:
+          $ref: '#/definitions/domain.ApplicationAuditLog'
+        type: array
+      company:
+        $ref: '#/definitions/domain.Company'
+      company_id:
+        type: string
+      counter_offer_reason:
+        type: string
+      created_at:
+        type: string
+      disbursed_at:
+        type: string
+      documents:
+        items:
+          $ref: '#/definitions/domain.ApplicationDocument'
+        type: array
+      financing_goal:
+        description: WORKING_CAPITAL, EQUIPMENT, etc.
+        type: string
+      id:
+        type: string
+      is_counter_offer:
+        type: boolean
+      monthly_payment:
+        type: number
+      product:
+        $ref: '#/definitions/domain.CreditProduct'
+      product_id:
+        type: string
+      rejection_reason:
+        type: string
+      repayment_type:
+        type: string
+      requested_amount:
+        type: number
+      requested_term_months:
+        type: integer
+      scoring_result:
+        allOf:
+        - $ref: '#/definitions/domain.ScoringResult'
+        description: Связанные сущности
+      signed_at:
+        type: string
+      sms_code:
+        description: СМС-подтверждение и выдача (in-app симуляция)
+        type: string
+      status:
+        $ref: '#/definitions/domain.ApplicationStatus'
+      underwriter_notes:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.ApplicationAuditLog:
+    properties:
+      actor_role:
+        description: CLIENT, SYSTEM, UNDERWRITER
+        type: string
+      application_id:
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      from_status:
+        $ref: '#/definitions/domain.ApplicationStatus'
+      id:
+        type: string
+      to_status:
+        $ref: '#/definitions/domain.ApplicationStatus'
+    type: object
+  domain.ApplicationDocument:
+    properties:
+      application_id:
+        type: string
+      created_at:
+        type: string
+      doc_type:
+        description: FINANCIAL_REPORT, BANK_STATEMENT, PASSPORT
+        type: string
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      id:
+        type: string
+      status:
+        type: string
+      summary:
+        type: string
+    type: object
+  domain.ApplicationStatus:
+    enum:
+    - DRAFT
+    - SUBMITTED
+    - ENRICHING
+    - SCORING
+    - MANUAL_REVIEW
+    - OFFER_READY
+    - SIGNED
+    - DISBURSED
+    - REJECTED
+    type: string
+    x-enum-comments:
+      StatusDisbursed: Средства зачислены на счет
+      StatusDraft: Черновик заявки
+      StatusEnriching: Обогащение данными (ФНС, БКИ, реестры)
+      StatusManualReview: На ручном рассмотрении у андеррайтера
+      StatusOfferReady: Предложение сформировано (одобрено или контр-оффер)
+      StatusRejected: Отказ в выдаче
+      StatusScoring: Скоринг и риск-проверка
+      StatusSigned: Договор подписан клиентом (ПЭП)
+      StatusSubmitted: Заявка отправлена клиентом
+    x-enum-varnames:
+    - StatusDraft
+    - StatusSubmitted
+    - StatusEnriching
+    - StatusScoring
+    - StatusManualReview
+    - StatusOfferReady
+    - StatusSigned
+    - StatusDisbursed
+    - StatusRejected
+  domain.Company:
+    properties:
+      address:
+        type: string
+      annual_revenue:
+        description: Годовая выручка (руб)
+        type: number
+      bki_score:
+        description: Скоринговый балл БКИ (300-850)
+        type: integer
+      court_cases_amount:
+        description: Сумма исков
+        type: number
+      court_cases_count:
+        description: Количество судебных/арбитражных дел
+        type: integer
+      created_at:
+        type: string
+      director_name:
+        type: string
+      employee_count:
+        description: Число сотрудников
+        type: integer
+      existing_debt:
+        description: Текущий остаток долга по кредитам
+        type: number
+      has_account_in_alfa:
+        description: Открыт ли расчетный счет в Альфа-Банке
+        type: boolean
+      has_tax_arrears:
+        description: Есть задолженность перед ФНС
+        type: boolean
+      id:
+        type: string
+      inn:
+        type: string
+      legal_form:
+        description: OOO, IP
+        type: string
+      monthly_debt_payment:
+        description: Ежемесячный платеж по текущим обязательствам
+        type: number
+      name:
+        type: string
+      net_profit:
+        description: Чистая прибыль (руб)
+        type: number
+      ogrn:
+        type: string
+      okved:
+        type: string
+      okved_description:
+        type: string
+      registration_date:
+        type: string
+      tax_arrears_amount:
+        description: Сумма задолженности ФНС
+        type: number
+      tax_system:
+        description: ОСНО, УСН
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.CreditProduct:
+    properties:
+      base_interest_rate:
+        description: Базовая ставка в % годовых
+        type: number
+      created_at:
+        type: string
+      description:
+        type: string
+      grace_period_months:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      max_amount:
+        type: number
+      max_term_months:
+        type: integer
+      min_amount:
+        type: number
+      min_term_months:
+        type: integer
+      name:
+        type: string
+      requires_collateral:
+        type: boolean
+      target_audience:
+        type: string
+    type: object
+  domain.ScoringFactor:
+    properties:
+      category:
+        description: 'Категория: FINANCIAL, REPUTATION, CREDIT_HISTORY, STABILITY'
+        type: string
+      description:
+        description: Понятное предпринимателю объяснение
+        type: string
+      is_positive:
+        description: Положительное или отрицательное влияние
+        type: boolean
+      name:
+        description: Название фактора (например, "Возраст бизнеса")
+        type: string
+      score_impact:
+        description: Влияние на балл (+80 или -120)
+        type: integer
+      value:
+        description: Значение (например, "3.5 года")
+        type: string
+      weight:
+        description: Вес фактора в модели
+        type: number
+    type: object
+  domain.ScoringResult:
+    properties:
+      application_id:
+        type: string
+      created_at:
+        type: string
+      dti:
+        description: Коэффициент долговой нагрузки (Debt-to-Income, в %)
+        type: number
+      factors:
+        items:
+          $ref: '#/definitions/domain.ScoringFactor'
+        type: array
+      id:
+        type: string
+      max_approved_amount:
+        type: number
+      recommendations:
+        description: Рекомендации Кредитного доктора
+        items:
+          type: string
+        type: array
+      recommended_decision:
+        description: APPROVE, COUNTER_OFFER, MANUAL_REVIEW, REJECT
+        type: string
+      recommended_rate:
+        type: number
+      risk_level:
+        description: LOW, MEDIUM, HIGH, CRITICAL
+        type: string
+      stop_factors:
+        items:
+          type: string
+        type: array
+      total_score:
+        description: Балл от 0 до 1000
+        type: integer
+    type: object
+  handler.SignOfferDTO:
+    properties:
+      sms_code:
+        type: string
+    required:
+    - sms_code
+    type: object
+  handler.UnderwriterRejectDTO:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
+  service.CreateApplicationDTO:
+    properties:
+      financing_goal:
+        type: string
+      inn:
+        type: string
+      product_id:
+        type: string
+      repayment_type:
+        type: string
+      requested_amount:
+        type: number
+      requested_term_months:
+        type: integer
+    required:
+    - inn
+    - product_id
+    - requested_amount
+    - requested_term_months
+    type: object
+  service.PipelineStats:
+    properties:
+      approved_count:
+        type: integer
+      average_score:
+        type: number
+      disbursed_count:
+        type: integer
+      draft_count:
+        type: integer
+      rejected_count:
+        type: integer
+      review_count:
+        type: integer
+      total_applications:
+        type: integer
+      total_disbursed_volume:
+        type: number
+    type: object
+  service.UnderwriterApproveDTO:
+    properties:
+      approved_amount:
+        type: number
+      approved_rate:
+        type: number
+      approved_term_months:
+        type: integer
+      notes:
+        type: string
+    required:
+    - approved_amount
+    - approved_rate
+    - approved_term_months
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: derluckin@yandex.ru
+    name: Команда разработки (kanef1)
+  description: REST API сквозного кредитного конвейера для малого и микробизнеса (Альфа-Банк).
+  title: Альфа Хак — API Цифрового Кредитного Конвейера МСП
+  version: "1.0"
+paths:
+  /api/v1/applications:
+    get:
+      parameters:
+      - description: Фильтр по статусу (например, MANUAL_REVIEW, OFFER_READY)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Application'
+            type: array
+      summary: Список всех заявок (для андеррайтера или истории клиента)
+      tags:
+      - Applications
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные заявки
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateApplicationDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Создать черновик кредитной заявки
+      tags:
+      - Applications
+  /api/v1/applications/{id}:
+    get:
+      parameters:
+      - description: ID заявки (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Получить статус и детали кредитной заявки
+      tags:
+      - Applications
+  /api/v1/applications/{id}/sign:
+    post:
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: СМС-код подтверждения
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.SignOfferDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Принять условия и подписать кредитный договор (ПЭП СМС)
+      tags:
+      - Applications
+  /api/v1/applications/{id}/submit:
+    post:
+      parameters:
+      - description: ID заявки (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Отправить заявку в конвейер (запуск обогащения и скоринга)
+      tags:
+      - Applications
+  /api/v1/companies/lookup:
+    get:
+      parameters:
+      - description: ИНН компании (10 цифр) или ИП (12 цифр)
+        in: query
+        name: inn
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Company'
+      summary: Поиск и обогащение сведений о компании по ИНН (ФНС / ЕГРЮЛ / БКИ)
+      tags:
+      - Companies
+  /api/v1/demo/companies:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Company'
+            type: array
+      summary: Получить эталонные синтетические компании для проверки сценариев жюри
+      tags:
+      - Demo
+  /api/v1/demo/seed:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Сбросить и наполнить базу эталонными заявками
+      tags:
+      - Demo
+  /api/v1/health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Проверка работоспособности сервиса
+      tags:
+      - System
+  /api/v1/products:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CreditProduct'
+            type: array
+      summary: Получить список кредитных продуктов Альфа-Банка
+      tags:
+      - Products
+  /api/v1/underwriter/applications/{id}/approve:
+    post:
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Параметры согласования
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.UnderwriterApproveDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Ручное одобрение заявки андеррайтером
+      tags:
+      - Underwriter
+  /api/v1/underwriter/applications/{id}/reject:
+    post:
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Причина отказа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UnderwriterRejectDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Application'
+      summary: Отклонение заявки андеррайтером с указанием причины
+      tags:
+      - Underwriter
+  /api/v1/underwriter/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.PipelineStats'
+      summary: Метрики конвейера для дашборда банка
+      tags:
+      - Underwriter
+swagger: "2.0"
