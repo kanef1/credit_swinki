@@ -1,0 +1,6 @@
+bin
+.git
+.idea
+*.db
+*.sqlite
+*.log

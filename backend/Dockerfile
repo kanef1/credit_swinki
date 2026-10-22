@@ -1,7 +1,9 @@
 # Multi-stage build для Go бэкенда
-FROM golang:1.24-alpine AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /app
+
+ENV GOTOOLCHAIN=auto
 
 # Установка зависимостей сборки
 RUN apk add --no-cache git ca-certificates
