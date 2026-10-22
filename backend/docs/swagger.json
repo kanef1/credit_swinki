@@ -1,0 +1,897 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API сквозного кредитного конвейера для малого и микробизнеса (Альфа-Банк).",
+        "title": "Альфа Хак — API Цифрового Кредитного Конвейера МСП",
+        "contact": {
+            "name": "Команда разработки (kanef1)",
+            "email": "derluckin@yandex.ru"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/applications": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Список всех заявок (для андеррайтера или истории клиента)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Фильтр по статусу (например, MANUAL_REVIEW, OFFER_READY)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Application"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Создать черновик кредитной заявки",
+                "parameters": [
+                    {
+                        "description": "Данные заявки",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateApplicationDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/applications/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Получить статус и детали кредитной заявки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/applications/{id}/sign": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Принять условия и подписать кредитный договор (ПЭП СМС)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "СМС-код подтверждения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.SignOfferDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/applications/{id}/submit": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Applications"
+                ],
+                "summary": "Отправить заявку в конвейер (запуск обогащения и скоринга)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/companies/lookup": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Companies"
+                ],
+                "summary": "Поиск и обогащение сведений о компании по ИНН (ФНС / ЕГРЮЛ / БКИ)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ИНН компании (10 цифр) или ИП (12 цифр)",
+                        "name": "inn",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Company"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/demo/companies": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Demo"
+                ],
+                "summary": "Получить эталонные синтетические компании для проверки сценариев жюри",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.Company"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/demo/seed": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Demo"
+                ],
+                "summary": "Сбросить и наполнить базу эталонными заявками",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Проверка работоспособности сервиса",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/products": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Получить список кредитных продуктов Альфа-Банка",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/domain.CreditProduct"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/underwriter/applications/{id}/approve": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Underwriter"
+                ],
+                "summary": "Ручное одобрение заявки андеррайтером",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Параметры согласования",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UnderwriterApproveDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/underwriter/applications/{id}/reject": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Underwriter"
+                ],
+                "summary": "Отклонение заявки андеррайтером с указанием причины",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID заявки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Причина отказа",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.UnderwriterRejectDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Application"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/underwriter/stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Underwriter"
+                ],
+                "summary": "Метрики конвейера для дашборда банка",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.PipelineStats"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.Application": {
+            "type": "object",
+            "properties": {
+                "application_number": {
+                    "type": "string"
+                },
+                "approved_amount": {
+                    "description": "Поля решения",
+                    "type": "number"
+                },
+                "approved_rate": {
+                    "type": "number"
+                },
+                "approved_term_months": {
+                    "type": "integer"
+                },
+                "audit_logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ApplicationAuditLog"
+                    }
+                },
+                "company": {
+                    "$ref": "#/definitions/domain.Company"
+                },
+                "company_id": {
+                    "type": "string"
+                },
+                "counter_offer_reason": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "disbursed_at": {
+                    "type": "string"
+                },
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ApplicationDocument"
+                    }
+                },
+                "financing_goal": {
+                    "description": "WORKING_CAPITAL, EQUIPMENT, etc.",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_counter_offer": {
+                    "type": "boolean"
+                },
+                "monthly_payment": {
+                    "type": "number"
+                },
+                "product": {
+                    "$ref": "#/definitions/domain.CreditProduct"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "repayment_type": {
+                    "type": "string"
+                },
+                "requested_amount": {
+                    "type": "number"
+                },
+                "requested_term_months": {
+                    "type": "integer"
+                },
+                "scoring_result": {
+                    "description": "Связанные сущности",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.ScoringResult"
+                        }
+                    ]
+                },
+                "signed_at": {
+                    "type": "string"
+                },
+                "sms_code": {
+                    "description": "СМС-подтверждение и выдача (in-app симуляция)",
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ApplicationStatus"
+                },
+                "underwriter_notes": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ApplicationAuditLog": {
+            "type": "object",
+            "properties": {
+                "actor_role": {
+                    "description": "CLIENT, SYSTEM, UNDERWRITER",
+                    "type": "string"
+                },
+                "application_id": {
+                    "type": "string"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_status": {
+                    "$ref": "#/definitions/domain.ApplicationStatus"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "to_status": {
+                    "$ref": "#/definitions/domain.ApplicationStatus"
+                }
+            }
+        },
+        "domain.ApplicationDocument": {
+            "type": "object",
+            "properties": {
+                "application_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "doc_type": {
+                    "description": "FINANCIAL_REPORT, BANK_STATEMENT, PASSPORT",
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "file_size": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ApplicationStatus": {
+            "type": "string",
+            "enum": [
+                "DRAFT",
+                "SUBMITTED",
+                "ENRICHING",
+                "SCORING",
+                "MANUAL_REVIEW",
+                "OFFER_READY",
+                "SIGNED",
+                "DISBURSED",
+                "REJECTED"
+            ],
+            "x-enum-comments": {
+                "StatusDisbursed": "Средства зачислены на счет",
+                "StatusDraft": "Черновик заявки",
+                "StatusEnriching": "Обогащение данными (ФНС, БКИ, реестры)",
+                "StatusManualReview": "На ручном рассмотрении у андеррайтера",
+                "StatusOfferReady": "Предложение сформировано (одобрено или контр-оффер)",
+                "StatusRejected": "Отказ в выдаче",
+                "StatusScoring": "Скоринг и риск-проверка",
+                "StatusSigned": "Договор подписан клиентом (ПЭП)",
+                "StatusSubmitted": "Заявка отправлена клиентом"
+            },
+            "x-enum-varnames": [
+                "StatusDraft",
+                "StatusSubmitted",
+                "StatusEnriching",
+                "StatusScoring",
+                "StatusManualReview",
+                "StatusOfferReady",
+                "StatusSigned",
+                "StatusDisbursed",
+                "StatusRejected"
+            ]
+        },
+        "domain.Company": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "annual_revenue": {
+                    "description": "Годовая выручка (руб)",
+                    "type": "number"
+                },
+                "bki_score": {
+                    "description": "Скоринговый балл БКИ (300-850)",
+                    "type": "integer"
+                },
+                "court_cases_amount": {
+                    "description": "Сумма исков",
+                    "type": "number"
+                },
+                "court_cases_count": {
+                    "description": "Количество судебных/арбитражных дел",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "director_name": {
+                    "type": "string"
+                },
+                "employee_count": {
+                    "description": "Число сотрудников",
+                    "type": "integer"
+                },
+                "existing_debt": {
+                    "description": "Текущий остаток долга по кредитам",
+                    "type": "number"
+                },
+                "has_account_in_alfa": {
+                    "description": "Открыт ли расчетный счет в Альфа-Банке",
+                    "type": "boolean"
+                },
+                "has_tax_arrears": {
+                    "description": "Есть задолженность перед ФНС",
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inn": {
+                    "type": "string"
+                },
+                "legal_form": {
+                    "description": "OOO, IP",
+                    "type": "string"
+                },
+                "monthly_debt_payment": {
+                    "description": "Ежемесячный платеж по текущим обязательствам",
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "net_profit": {
+                    "description": "Чистая прибыль (руб)",
+                    "type": "number"
+                },
+                "ogrn": {
+                    "type": "string"
+                },
+                "okved": {
+                    "type": "string"
+                },
+                "okved_description": {
+                    "type": "string"
+                },
+                "registration_date": {
+                    "type": "string"
+                },
+                "tax_arrears_amount": {
+                    "description": "Сумма задолженности ФНС",
+                    "type": "number"
+                },
+                "tax_system": {
+                    "description": "ОСНО, УСН",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CreditProduct": {
+            "type": "object",
+            "properties": {
+                "base_interest_rate": {
+                    "description": "Базовая ставка в % годовых",
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "grace_period_months": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "max_amount": {
+                    "type": "number"
+                },
+                "max_term_months": {
+                    "type": "integer"
+                },
+                "min_amount": {
+                    "type": "number"
+                },
+                "min_term_months": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "requires_collateral": {
+                    "type": "boolean"
+                },
+                "target_audience": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ScoringFactor": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "Категория: FINANCIAL, REPUTATION, CREDIT_HISTORY, STABILITY",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Понятное предпринимателю объяснение",
+                    "type": "string"
+                },
+                "is_positive": {
+                    "description": "Положительное или отрицательное влияние",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Название фактора (например, \"Возраст бизнеса\")",
+                    "type": "string"
+                },
+                "score_impact": {
+                    "description": "Влияние на балл (+80 или -120)",
+                    "type": "integer"
+                },
+                "value": {
+                    "description": "Значение (например, \"3.5 года\")",
+                    "type": "string"
+                },
+                "weight": {
+                    "description": "Вес фактора в модели",
+                    "type": "number"
+                }
+            }
+        },
+        "domain.ScoringResult": {
+            "type": "object",
+            "properties": {
+                "application_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dti": {
+                    "description": "Коэффициент долговой нагрузки (Debt-to-Income, в %)",
+                    "type": "number"
+                },
+                "factors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.ScoringFactor"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "max_approved_amount": {
+                    "type": "number"
+                },
+                "recommendations": {
+                    "description": "Рекомендации Кредитного доктора",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "recommended_decision": {
+                    "description": "APPROVE, COUNTER_OFFER, MANUAL_REVIEW, REJECT",
+                    "type": "string"
+                },
+                "recommended_rate": {
+                    "type": "number"
+                },
+                "risk_level": {
+                    "description": "LOW, MEDIUM, HIGH, CRITICAL",
+                    "type": "string"
+                },
+                "stop_factors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "total_score": {
+                    "description": "Балл от 0 до 1000",
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.SignOfferDTO": {
+            "type": "object",
+            "required": [
+                "sms_code"
+            ],
+            "properties": {
+                "sms_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.UnderwriterRejectDTO": {
+            "type": "object",
+            "required": [
+                "reason"
+            ],
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateApplicationDTO": {
+            "type": "object",
+            "required": [
+                "inn",
+                "product_id",
+                "requested_amount",
+                "requested_term_months"
+            ],
+            "properties": {
+                "financing_goal": {
+                    "type": "string"
+                },
+                "inn": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "repayment_type": {
+                    "type": "string"
+                },
+                "requested_amount": {
+                    "type": "number"
+                },
+                "requested_term_months": {
+                    "type": "integer"
+                }
+            }
+        },
+        "service.PipelineStats": {
+            "type": "object",
+            "properties": {
+                "approved_count": {
+                    "type": "integer"
+                },
+                "average_score": {
+                    "type": "number"
+                },
+                "disbursed_count": {
+                    "type": "integer"
+                },
+                "draft_count": {
+                    "type": "integer"
+                },
+                "rejected_count": {
+                    "type": "integer"
+                },
+                "review_count": {
+                    "type": "integer"
+                },
+                "total_applications": {
+                    "type": "integer"
+                },
+                "total_disbursed_volume": {
+                    "type": "number"
+                }
+            }
+        },
+        "service.UnderwriterApproveDTO": {
+            "type": "object",
+            "required": [
+                "approved_amount",
+                "approved_rate",
+                "approved_term_months"
+            ],
+            "properties": {
+                "approved_amount": {
+                    "type": "number"
+                },
+                "approved_rate": {
+                    "type": "number"
+                },
+                "approved_term_months": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
