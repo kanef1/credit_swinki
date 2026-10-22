@@ -28,6 +28,7 @@ var AllowedTransitions = map[ApplicationStatus][]ApplicationStatus{
 	StatusOfferReady: {
 		StatusSigned,
 		StatusRejected,
+		StatusOfferReady,
 	},
 	StatusSigned: {
 		StatusDisbursed,

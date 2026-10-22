@@ -206,10 +206,11 @@ func (s *PipelineService) UnderwriterApprove(appID uuid.UUID, dto UnderwriterApp
 		return nil, err
 	}
 
-	if app.Status != domain.StatusManualReview {
-		return nil, fmt.Errorf("заявка находится в статусе '%s', ручное согласование доступно только для '%s'", app.Status, domain.StatusManualReview)
+	if app.Status != domain.StatusManualReview && app.Status != domain.StatusOfferReady {
+		return nil, fmt.Errorf("ручное согласование доступно только для статусов '%s' и '%s' (текущий: '%s')", domain.StatusManualReview, domain.StatusOfferReady, app.Status)
 	}
 
+	prevStatus := app.Status
 	app.Status = domain.StatusOfferReady
 	app.ApprovedAmount = dto.ApprovedAmount
 	app.ApprovedTermMonths = dto.ApprovedTermMonths
@@ -220,7 +221,7 @@ func (s *PipelineService) UnderwriterApprove(appID uuid.UUID, dto UnderwriterApp
 	app.UpdatedAt = time.Now()
 
 	s.repo.DB.Save(app)
-	s.repo.LogTransition(app.ID, domain.StatusManualReview, domain.StatusOfferReady, "UNDERWRITER", fmt.Sprintf("Одобрено андеррайтером: %.0f ₽, %.1f%% годовых. Комментарий: %s", dto.ApprovedAmount, dto.ApprovedRate, dto.Notes))
+	s.repo.LogTransition(app.ID, prevStatus, domain.StatusOfferReady, "UNDERWRITER", fmt.Sprintf("Одобрено/скорректировано андеррайтером: %.0f ₽, %.1f%% годовых. Комментарий: %s", dto.ApprovedAmount, dto.ApprovedRate, dto.Notes))
 
 	return s.GetApplicationByID(app.ID)
 }
@@ -232,16 +233,17 @@ func (s *PipelineService) UnderwriterReject(appID uuid.UUID, reason string) (*do
 		return nil, err
 	}
 
-	if app.Status != domain.StatusManualReview {
-		return nil, fmt.Errorf("заявка находится в статусе '%s', ручное отклонение доступно только для '%s'", app.Status, domain.StatusManualReview)
+	if app.Status != domain.StatusManualReview && app.Status != domain.StatusOfferReady {
+		return nil, fmt.Errorf("ручное отклонение доступно только для статусов '%s' и '%s' (текущий: '%s')", domain.StatusManualReview, domain.StatusOfferReady, app.Status)
 	}
 
+	prevStatus := app.Status
 	app.Status = domain.StatusRejected
 	app.RejectionReason = reason
 	app.UpdatedAt = time.Now()
 
 	s.repo.DB.Save(app)
-	s.repo.LogTransition(app.ID, domain.StatusManualReview, domain.StatusRejected, "UNDERWRITER", fmt.Sprintf("Отклонено андеррайтером. Причина: %s", reason))
+	s.repo.LogTransition(app.ID, prevStatus, domain.StatusRejected, "UNDERWRITER", fmt.Sprintf("Отклонено андеррайтером. Причина: %s", reason))
 
 	return s.GetApplicationByID(app.ID)
 }

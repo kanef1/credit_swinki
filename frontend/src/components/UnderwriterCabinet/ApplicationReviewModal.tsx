@@ -26,6 +26,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
 }) => {
   const company = application.company;
   const scoring = application.scoring_result;
+  const isClosed = application.status === 'DISBURSED' || application.status === 'SIGNED' || application.status === 'REJECTED';
 
   const [approvedAmount, setApprovedAmount] = useState<number>(
     application.approved_amount || application.requested_amount
@@ -85,8 +86,22 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
         <div className="flex justify-between items-center pb-4 border-b border-slate-100">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
-                Карточка андеррайтера
+              <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                application.status === 'OFFER_READY'
+                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  : application.status === 'DISBURSED' || application.status === 'SIGNED'
+                  ? 'text-teal-700 bg-teal-50 border-teal-200'
+                  : application.status === 'REJECTED'
+                  ? 'text-rose-700 bg-rose-50 border-rose-200'
+                  : 'text-blue-600 bg-blue-50 border-blue-100'
+              }`}>
+                {application.status === 'OFFER_READY'
+                  ? 'Карточка андеррайтера (Оффер готов)'
+                  : application.status === 'DISBURSED'
+                  ? 'Кредит выдан'
+                  : application.status === 'REJECTED'
+                  ? 'Заявка отклонена'
+                  : 'Карточка андеррайтера (Ручное рассмотрение)'}
               </span>
               <span className="font-mono text-xs text-slate-400">ID: {application.id.slice(0, 8)}</span>
             </div>
@@ -180,10 +195,33 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
         )}
 
         {/* Форма принятия ручного решения */}
-        {!isRejecting ? (
+        {isClosed ? (
+          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+            <div className="text-xs font-bold">
+              {application.status === 'DISBURSED' && (
+                <span className="text-teal-700">✅ Денежные средства уже зачислены заемщику. Изменение условий завершенной сделки заблокировано.</span>
+              )}
+              {application.status === 'SIGNED' && (
+                <span className="text-emerald-700">✅ Кредитный договор уже подписан заемщиком. Сделка находится на этапе выдачи.</span>
+              )}
+              {application.status === 'REJECTED' && (
+                <span className="text-rose-700">❌ Заявка уже отклонена. Причина: {application.rejection_reason || 'Отказ по кредитной политике'}</span>
+              )}
+            </div>
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        ) : !isRejecting ? (
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Параметры согласования (одобрение)
+              {application.status === 'OFFER_READY' ? 'Корректировка условий оффера' : 'Параметры согласования (одобрение)'}
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -237,7 +275,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                 onClick={() => setIsRejecting(true)}
                 className="text-xs text-rose-600 hover:text-rose-700 font-bold"
               >
-                Отклонить заявку
+                {application.status === 'OFFER_READY' ? 'Отозвать оффер / Отклонить' : 'Отклонить заявку'}
               </button>
 
               <div className="flex space-x-2">
@@ -254,7 +292,7 @@ export const ApplicationReviewModal: React.FC<ApplicationReviewModalProps> = ({
                   onClick={handleApprove}
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50"
                 >
-                  {loading ? 'Сохранение...' : 'Одобрить условия'}
+                  {loading ? 'Сохранение...' : application.status === 'OFFER_READY' ? 'Скорректировать оффер' : 'Одобрить условия'}
                 </button>
               </div>
             </div>
