@@ -3,7 +3,7 @@ package domain
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -126,9 +126,18 @@ func (fl FactorsList) Value() (driver.Value, error) {
 }
 
 func (fl *FactorsList) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed for FactorsList")
+	if value == nil {
+		*fl = FactorsList{}
+		return nil
+	}
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("type assertion failed for FactorsList: unexpected type %T", value)
 	}
 	return json.Unmarshal(bytes, fl)
 }
@@ -141,9 +150,18 @@ func (sl StringList) Value() (driver.Value, error) {
 }
 
 func (sl *StringList) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed for StringList")
+	if value == nil {
+		*sl = StringList{}
+		return nil
+	}
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("type assertion failed for StringList: unexpected type %T", value)
 	}
 	return json.Unmarshal(bytes, sl)
 }
