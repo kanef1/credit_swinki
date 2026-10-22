@@ -1,4 +1,4 @@
-.PHONY: help up down restart logs status dev-backend dev-frontend db-up test test-backend test-e2e lint swagger seed clean
+.PHONY: help run up down restart logs status dev-backend dev-frontend db-up test test-backend test-e2e lint swagger seed clean
 
 # Цвета для красивого вывода
 CYAN    := \033[36m
@@ -16,7 +16,7 @@ help: ## Показать справку по доступным команда�
 # Docker & Развертывание
 # ==========================================
 
-up: ## Собрать и запустить все сервисы (БД + Бэкенд + Фронтенд) в Docker
+run: ## Собрать и запустить все сервисы (БД + Бэкенд + Фронтенд) в Docker
 	@echo "$(CYAN)Запуск всех сервисов в Docker...$(RESET)"
 	docker compose up --build -d
 	@echo "$(GREEN)Готово!$(RESET)"
@@ -24,11 +24,13 @@ up: ## Собрать и запустить все сервисы (БД + Бэк
 	@echo "  API & Swagger:     $(CYAN)http://localhost:8080/swagger/index.html$(RESET)"
 	@echo "  Метрики / Health:  $(CYAN)http://localhost:8080/api/v1/health$(RESET)"
 
+up: run ## Синоним команды run
+
 down: ## Остановить и удалить все контейнеры
 	@echo "$(YELLOW)Остановка сервисов...$(RESET)"
 	docker compose down
 
-restart: down up ## Перезапуск окружения
+restart: down run ## Перезапуск окружения
 
 logs: ## Просмотр логов всех сервисов в реальном времени
 	docker compose logs -f

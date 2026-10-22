@@ -15,7 +15,7 @@
 Для запуска всего решения (PostgreSQL + Go Backend + React Frontend + Nginx) на любом стандартном ПК выполните:
 
 ```bash
-make up
+make run
 ```
 
 *(или стандартной командой: `docker compose up --build -d`)*
@@ -114,7 +114,7 @@ stateDiagram-v2
 
 ```bash
 make help          # Показать справку по всем доступным командам
-make up            # Собрать и запустить проект в Docker (http://localhost:3000)
+make run           # Собрать и запустить проект в Docker (http://localhost:3000)
 make down          # Остановить и удалить контейнеры
 make logs          # Просмотр логов сервисов в реальном времени
 make status        # Проверить статус контейнеров и healthcheck
