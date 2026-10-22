@@ -24,7 +24,7 @@ services:
     container_name: credit_backend
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8085:8080"
     environment:
       - DATABASE_URL=postgres://alfa:alfapass@postgres:5432/credit_conveyor?sslmode=disable
       - PORT=8080
